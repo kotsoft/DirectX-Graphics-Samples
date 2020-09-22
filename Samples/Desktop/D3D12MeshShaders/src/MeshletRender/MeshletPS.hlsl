@@ -23,6 +23,7 @@ struct VertexOut
     float3 PositionVS   : POSITION0;
     float3 Normal       : NORMAL0;
     uint   MeshletIndex : COLOR0;
+    float3 Color1       : COLOR1;
 };
 
 ConstantBuffer<Constants> Globals : register(b0);
@@ -33,22 +34,8 @@ float4 main(VertexOut input) : SV_TARGET
     float3 lightColor = float3(1, 1, 1);
     float3 lightDir = -normalize(float3(1, -1, 1));
 
-    float3 diffuseColor;
-    float shininess;
-    if (Globals.DrawMeshlets)
-    {
-        uint meshletIndex = input.MeshletIndex;
-        diffuseColor = float3(
-            float(meshletIndex & 1),
-            float(meshletIndex & 3) / 4,
-            float(meshletIndex & 7) / 8);
-        shininess = 16.0;
-    }
-    else
-    {
-        diffuseColor = 0.8;
-        shininess = 64.0;
-    }
+    float3 diffuseColor = input.Color1;
+    float shininess = 16.0;
 
     float3 normal = normalize(input.Normal);
 

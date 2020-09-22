@@ -44,6 +44,13 @@ struct VertexOut
     uint   MeshletIndex : COLOR0;
 };
 
+struct PrimOut
+{
+    //float4 Vector : VECTOR0;
+    float3 Vector : VECTOR0;
+    float3 Color : COLOR1;
+};
+
 struct Meshlet
 {
     uint VertCount;
@@ -60,6 +67,14 @@ StructuredBuffer<Meshlet> Meshlets            : register(t1);
 ByteAddressBuffer         UniqueVertexIndices : register(t2);
 StructuredBuffer<uint>    PrimitiveIndices    : register(t3);
 
+static const float3 colors[6] = {
+    float3(1, 0, 0),
+    float3(.6, .6, 0),
+    float3(0, 1, 0),
+    float3(0, .6, .6),
+    float3(0, 0, 1),
+    float3(.6, 0, .6)
+};
 
 /////
 // Data Loaders
@@ -111,6 +126,7 @@ VertexOut GetVertexAttributes(uint meshletIndex, uint vertexIndex)
 }
 
 
+
 [RootSignature(ROOT_SIG)]
 [NumThreads(128, 1, 1)]
 [OutputTopology("triangle")]
@@ -118,7 +134,8 @@ void main(
     uint gtid : SV_GroupThreadID,
     uint gid : SV_GroupID,
     out indices uint3 tris[126],
-    out vertices VertexOut verts[64]
+    out vertices VertexOut verts[64],
+    out primitives PrimOut prims[126]
 )
 {
     Meshlet m = Meshlets[MeshInfo.MeshletOffset + gid];
@@ -128,6 +145,7 @@ void main(
     if (gtid < m.PrimCount)
     {
         tris[gtid] = GetPrimitive(m, gtid);
+        prims[gtid].Color = colors[gid % 6];
     }
 
     if (gtid < m.VertCount)
